@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTok OAuth Callback — Pabrik Affiliate Bunda</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 48px auto; padding: 0 20px; color: #222; line-height: 1.6; background: #fffaf5; }
+    .card { background: #fff; border: 1px solid #ead8c7; border-radius: 14px; padding: 24px; }
+    pre, input { width: 100%; box-sizing: border-box; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: monospace; font-size: 14px; background: #f8f8f8; }
+    button { margin-top: 10px; padding: 10px 18px; border: none; border-radius: 8px; background: #b8532e; color: #fff; font-weight: bold; cursor: pointer; }
+    .ok { color: #2e7d5b; font-weight: bold; }
+    .err { color: #b91c1c; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>TikTok OAuth Callback</h2>
+    <p id="status">Memeriksa kode otorisasi dari TikTok...</p>
+    <div id="code-box" style="display:none;">
+      <label for="auth-code"><strong>Authorization Code:</strong></label>
+      <input id="auth-code" type="text" readonly>
+      <button onclick="copyCode()">Copy Code</button>
+      <p style="font-size:14px;color:#555;">Jika terminal tidak otomatis melanjutkan, copy kode di atas (atau URL halaman ini) lalu paste ke terminal <code>2_LOGIN_TIKTOK_INBOX.bat</code>.</p>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+    const err = params.get("error");
+    const errDesc = params.get("error_description");
+    const statusEl = document.getElementById("status");
+
+    if (err) {
+      statusEl.className = "err";
+      statusEl.textContent = "Otorisasi gagal: " + err + (errDesc ? " (" + errDesc + ")" : "");
+    } else if (code) {
+      document.getElementById("code-box").style.display = "block";
+      document.getElementById("auth-code").value = code;
+      statusEl.className = "ok";
+      statusEl.textContent = "Kode berhasil diterima! Menghubungkan ke skrip lokal di laptop...";
+
+      fetch("http://127.0.0.1:8765/callback" + window.location.search, { mode: "no-cors" })
+        .then(() => {
+          statusEl.textContent = "Berhasil diteruskan ke skrip lokal! Silakan cek jendela terminal, tab ini boleh ditutup.";
+        })
+        .catch(() => {
+          statusEl.textContent = "Kode siap! Klik Copy Code di bawah lalu paste ke terminal.";
+        });
+    } else {
+      statusEl.textContent = "Halaman callback aktif. Jalankan 2_LOGIN_TIKTOK_INBOX.bat di laptop untuk memulai login TikTok.";
+    }
+
+    function copyCode() {
+      const inp = document.getElementById("auth-code");
+      inp.select();
+      navigator.clipboard.writeText(inp.value);
+    }
+  </script>
+</body>
+</html>
